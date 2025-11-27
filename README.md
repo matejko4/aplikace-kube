@@ -2,6 +2,10 @@
 
 Webová aplikace vytvořená pomocí Flask frameworku s MariaDB databází, containerizovaná pomocí Docker.
 
+![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
+![Flask](https://img.shields.io/badge/Flask-000000?style=for-the-badge&logo=flask&logoColor=white)
+![MariaDB](https://img.shields.io/badge/MariaDB-003545?style=for-the-badge&logo=mariadb&logoColor=white)
+
 ## Funkce
 
 - 📝 Kontaktní formulář s polem pro jméno, email a zprávu
@@ -15,72 +19,192 @@ Webová aplikace vytvořená pomocí Flask frameworku s MariaDB databází, cont
 - Docker
 - Docker Compose
 
-## Spuštění pomocí Docker
+## Rychlé spuštění
 
-1. Build a spuštění kontejnerů:
+### Pomocí Docker Compose (doporučeno)
+
+1. Naklonujte repozitář:
 ```bash
-docker-compose up --build
+git clone https://github.com/VASE_JMENO/formular.git
+cd formular
 ```
 
-2. Aplikace bude dostupná na: **http://localhost:5001**
-
-3. Pro zastavení:
+2. Spusťte aplikaci:
 ```bash
-docker-compose down
+docker compose up --build
 ```
 
-4. Pro smazání dat (volumes):
+3. Otevřete prohlížeč a jděte na: **http://localhost:5001**
+
+4. Pro zastavení použijte `Ctrl+C` nebo:
 ```bash
-docker-compose down -v
+docker compose down
 ```
 
-## Manuální instalace (bez Dockeru)
+### Použití publikovaného Docker image
 
-1. Vytvořte virtuální prostředí:
 ```bash
-python -m venv venv
-source venv/bin/activate
+# Stáhněte image z GitHub Container Registry
+docker pull ghcr.io/VASE_JMENO/formular:latest
+
+# Nebo použijte docker-compose.yml s publikovaným image
 ```
 
-2. Nainstalujte závislosti:
+## Publikace na GitHub
+
+### 1. Vytvoření GitHub repozitáře
+
 ```bash
-pip install -r requirements.txt
+# Inicializujte git repozitář
+git init
+git add .
+git commit -m "Initial commit: Flask app with MariaDB"
+
+# Připojte se k GitHub repozitáři (vytvořte si nový repozitář na GitHubu)
+git remote add origin https://github.com/VASE_JMENO/formular.git
+git branch -M main
+git push -u origin main
 ```
 
-3. Nastavte připojení k MariaDB (upravte v `app.py` nebo použijte env proměnnou DATABASE_URL)
+### 2. Automatická publikace Docker image
 
-4. Spusťte aplikaci:
+Repozitář obsahuje GitHub Actions workflow (`.github/workflows/docker-publish.yml`), který automaticky:
+- Builduje Docker image při každém push na main/master
+- Publikuje image do GitHub Container Registry (ghcr.io)
+- Vytváří tagy podle verzí
+
+Po pushnutí na GitHub:
+1. Image bude automaticky publikován na `ghcr.io/VASE_JMENO/formular`
+2. Najdete ho v sekci "Packages" vašeho GitHub profilu
+3. Můžete ho stáhnout pomocí: `docker pull ghcr.io/VASE_JMENO/formular:latest`
+
+### 3. Nastavení viditelnosti package
+
+Po prvním buildu:
+1. Jděte do svého GitHub profilu → Packages
+2. Klikněte na package "formular"
+3. Package settings → Change visibility → Public (pokud chcete veřejný přístup)
+
+## Manuální publikace na Docker Hub
+
 ```bash
-python app.py
+# Přihlaste se do Docker Hub
+docker login
+
+# Build image
+docker build -t vase_jmeno/formular:latest .
+
+# Push do Docker Hub
+docker push vase_jmeno/formular:latest
 ```
+
+## Konfigurace
+
+### Environment proměnné
+
+V `docker-compose.yml` můžete upravit:
+
+```yaml
+environment:
+  DATABASE_URL: mysql+pymysql://root:password@db:3306/formular_db
+  FLASK_ENV: development
+  MYSQL_ROOT_PASSWORD: password
+  MYSQL_DATABASE: formular_db
+  MYSQL_USER: formular_user
+  MYSQL_PASSWORD: formular_pass
+```
+
+### Porty
+
+- **Flask aplikace**: 5001
+- **MariaDB**: 3306
 
 ## Struktura projektu
 
-- `app.py` - hlavní soubor aplikace s Flask routes a SQLAlchemy modely
-- `templates/` - HTML šablony
-- `static/` - CSS styly
-- `Dockerfile` - definice Docker image pro Flask aplikaci
-- `docker-compose.yml` - orchestrace Flask a MariaDB kontejnerů
-- `requirements.txt` - Python závislosti
+```
+.
+├── app.py                   # Hlavní Flask aplikace
+├── templates/               # HTML šablony
+│   ├── index.html          # Formulář
+│   ├── success.html        # Potvrzení
+│   └── data.html           # Zobrazení dat
+├── static/
+│   └── style.css           # CSS styly
+├── Dockerfile              # Docker image definice
+├── docker-compose.yml      # Docker Compose konfigurace
+├── requirements.txt        # Python závislosti
+├── .github/
+│   └── workflows/
+│       └── docker-publish.yml  # GitHub Actions CI/CD
+└── README.md
+```
 
 ## Databáze
 
 - **Engine**: MariaDB 11.2
 - **Databáze**: formular_db
 - **Tabulka**: form_submissions
-- **Sloupce**: id, name, email, message, created_at
+- **Sloupce**: 
+  - `id` (Primary Key)
+  - `name` (VARCHAR)
+  - `email` (VARCHAR)
+  - `message` (TEXT)
+  - `created_at` (DATETIME)
 
-## Health Check
+## Endpoints
 
-Aplikace obsahuje health check endpoint:
+- `GET /` - Hlavní stránka s formulářem
+- `POST /submit` - Odeslání formuláře
+- `GET /success` - Potvrzení o úspěšném odeslání
+- `GET /data` - Zobrazení všech odeslaných dat
+- `GET /health` - Health check endpoint
+
+## Development
+
+Pro vývoj bez Dockeru:
+
+```bash
+# Vytvořte virtuální prostředí
+python -m venv venv
+source venv/bin/activate  # Linux/Mac
+# nebo
+venv\Scripts\activate  # Windows
+
+# Nainstalujte závislosti
+pip install -r requirements.txt
+
+# Spusťte MariaDB (nebo upravte DATABASE_URL v app.py)
+
+# Spusťte aplikaci
+python app.py
 ```
-GET /health
+
+## Čištění
+
+```bash
+# Zastavení a odstranění kontejnerů
+docker compose down
+
+# Odstranění s volumes (smaže databázová data)
+docker compose down -v
+
+# Odstranění images
+docker rmi formular-web mariadb:11.2
 ```
+
+## Licence
+
+MIT
+
+## Autor
+
+Váš jméno
 
 ## Technologie
 
-- Flask 3.0.0
-- Flask-SQLAlchemy
-- MariaDB 11.2
-- Docker & Docker Compose
-- PyMySQL
+- **Backend**: Flask 3.0.0
+- **ORM**: Flask-SQLAlchemy
+- **Database**: MariaDB 11.2
+- **Database Driver**: PyMySQL
+- **Container**: Docker & Docker Compose
+- **CI/CD**: GitHub Actions

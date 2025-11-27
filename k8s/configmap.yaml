@@ -1,0 +1,12 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: formular-config
+  namespace: formular
+data:
+  FLASK_ENV: "production"
+  # Upravte podle vašeho Kubernetes DB service
+  DB_HOST: "mariadb-service"  # nebo název vašeho DB service
+  DB_PORT: "3306"
+  DB_NAME: "formular_db"

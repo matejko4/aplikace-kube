@@ -1,0 +1,18 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: formular-service
+  namespace: formular
+  labels:
+    app: formular
+spec:
+  type: NodePort  # Změňte na LoadBalancer pokud máte external load balancer
+  selector:
+    app: formular
+  ports:
+  - name: http
+    protocol: TCP
+    port: 80
+    targetPort: 5001
+    nodePort: 30001  # Port na kterém bude aplikace dostupná (30000-32767)
