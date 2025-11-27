@@ -1,0 +1,37 @@
+services:
+  db:
+    image: mariadb:11.2
+    container_name: formular_mariadb
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: formular_db
+      MYSQL_USER: formular_user
+      MYSQL_PASSWORD: formular_pass
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  web:
+    build: .
+    container_name: formular_flask
+    restart: always
+    ports:
+      - "5001:5001"
+    environment:
+      DATABASE_URL: mysql+pymysql://root:password@db:3306/formular_db
+      FLASK_ENV: development
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - .:/app
+
+volumes:
+  mariadb_data:
